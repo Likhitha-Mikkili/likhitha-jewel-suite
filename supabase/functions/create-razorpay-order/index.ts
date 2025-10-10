@@ -28,7 +28,11 @@ serve(async (req) => {
 
     const data = await response.json();
     return new Response(JSON.stringify(data), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
+  } catch (error: any) {
+    console.error("Error creating Razorpay order:", error);
+    return new Response(
+      JSON.stringify({ error: error.message || "Failed to create order" }), 
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 });

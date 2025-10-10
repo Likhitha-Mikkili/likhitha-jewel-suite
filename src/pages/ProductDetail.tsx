@@ -6,11 +6,11 @@ import { useParams, Link } from "react-router-dom";
 import { Heart, ShoppingCart, Truck, Shield, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/contexts/CartContext";
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const { toast } = useToast();
+  const { addToCart } = useCart();
   const product = products.find((p) => p.id === id);
 
   const [selectedVariant, setSelectedVariant] = useState(0);
@@ -35,9 +35,14 @@ const ProductDetail = () => {
   const currentVariant = product.variants[selectedVariant];
 
   const handleAddToCart = () => {
-    toast({
-      title: "Added to cart",
-      description: `${product.name} has been added to your cart.`,
+    addToCart({
+      id: `${product.id}-${currentVariant.id}`,
+      productId: product.id,
+      variantId: currentVariant.id,
+      name: product.name,
+      price: currentVariant.price,
+      image: product.images[0],
+      variantAttributes: currentVariant.attributes,
     });
   };
 

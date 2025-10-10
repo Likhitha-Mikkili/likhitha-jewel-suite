@@ -1,5 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,17 +12,50 @@ serve(async (req) => {
 
   try {
     const { email, order_id } = await req.json();
-    const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-
-    await resend.emails.send({
-      from: "The Fashion Edit.in <orders@thefashionedit.in>",
-      to: [email],
-      subject: "Order Confirmation",
-      html: `<h1>Thank you for your order!</h1><p>Order ID: ${order_id}</p>`,
+    
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    
+    const emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "The Fashion Edit.in <onboarding@resend.dev>",
+        to: [email],
+        subject: "Order Confirmation - The Fashion Edit.in",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #B98856;">Thank you for your order!</h1>
+            <p>Your order has been confirmed and is being processed.</p>
+            <p><strong>Order ID:</strong> ${order_id}</p>
+            <p>You will receive another email once your order has been shipped.</p>
+            <hr style="border: 1px solid #e5e5e5; margin: 20px 0;">
+            <p style="color: #666; font-size: 14px;">
+              If you have any questions, please contact us at support@thefashionedit.in
+            </p>
+          </div>
+        `,
+      }),
     });
 
-    return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
+    const emailData = await emailResponse.json();
+    
+    if (!emailResponse.ok) {
+      throw new Error(`Failed to send email: ${JSON.stringify(emailData)}`);
+    }
+
+    console.log("Order confirmation email sent:", emailData);
+
+    return new Response(JSON.stringify({ success: true }), { 
+      headers: { ...corsHeaders, "Content-Type": "application/json" } 
+    });
+  } catch (error: any) {
+    console.error("Error sending order confirmation:", error);
+    return new Response(
+      JSON.stringify({ error: error.message }), 
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 });
