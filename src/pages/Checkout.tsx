@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { z } from "zod";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,18 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+// Input validation schema
+const checkoutSchema = z.object({
+  fullName: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters"),
+  email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters"),
+  phone: z.string().regex(/^[0-9]{10}$/, "Phone must be exactly 10 digits"),
+  address1: z.string().trim().min(5, "Address must be at least 5 characters").max(200, "Address must be less than 200 characters"),
+  address2: z.string().max(200, "Address must be less than 200 characters").optional(),
+  city: z.string().trim().min(2, "City must be at least 2 characters").max(100, "City must be less than 100 characters"),
+  state: z.string().trim().min(2, "State must be at least 2 characters").max(100, "State must be less than 100 characters"),
+  pincode: z.string().regex(/^[0-9]{6}$/, "Pincode must be exactly 6 digits"),
+});
 
 declare global {
   interface Window {
@@ -54,8 +67,21 @@ const Checkout = () => {
   const total = cartTotal + tax + shippingCharge;
 
   const handlePayment = async () => {
-    if (!fullName || !email || !phone || !address1 || !city || !state || !pincode) {
-      toast.error("Please fill all required fields");
+    // Validate all inputs using zod schema
+    const validationResult = checkoutSchema.safeParse({
+      fullName,
+      email,
+      phone,
+      address1,
+      address2: address2 || undefined,
+      city,
+      state,
+      pincode,
+    });
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map(err => err.message).join(", ");
+      toast.error(errors);
       return;
     }
 
