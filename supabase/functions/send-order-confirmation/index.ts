@@ -33,7 +33,7 @@ serve(async (req) => {
             <p>You will receive another email once your order has been shipped.</p>
             <hr style="border: 1px solid #e5e5e5; margin: 20px 0;">
             <p style="color: #666; font-size: 14px;">
-              If you have any questions, please contact us at support@thefashionedit.in
+              If you have any questions, please contact us at mikkililikhitha4353@gmail.com
             </p>
           </div>
         `,
