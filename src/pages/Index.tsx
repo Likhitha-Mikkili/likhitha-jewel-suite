@@ -47,7 +47,7 @@ const Index = () => {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-secondary-foreground text-secondary-foreground hover:bg-secondary-foreground/10"
+                  className="border-white text-white bg-white/10 hover:bg-white/20 backdrop-blur-sm"
                 >
                   Our Story
                 </Button>
